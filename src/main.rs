@@ -7,8 +7,20 @@ use std::process::Command;
 
 #[derive(Deserialize, Debug)]
 struct Config {
+    package: Package
+}
+
+#[derive(Deserialize, Debug)]
+struct Package {
+    metadata: Metadata
+}
+
+#[derive(Deserialize, Debug)]
+struct Metadata {
     scripts: HashMap<String, String>
 }
+
+
 
 fn main() {
     let mut f = File::open("Cargo.toml").expect("Cargo.toml file not found.");
@@ -17,15 +29,18 @@ fn main() {
     f.read_to_string(&mut toml)
         .expect("Failed to read Cargo.toml.");
 
-    let table : Config = toml::from_str(&toml).expect("Expected Cargo.toml to contain scripts table.");
+    let table : Config = toml::from_str(&toml)
+        .expect("Expected Cargo.toml to contain package.metadata.scripts table.");
 
     let args: Vec<String> = env::args().collect();
 
+    // TODO correct arg handling for cargo run vs installed cargo run-script
     if args.len() > 1 {
         // run the script
         let script_name = &args[args.len() - 1];
 
-        let script = table.scripts.get(script_name).expect("Script not found");
+        let script = table.package.metadata.scripts.get(script_name)
+            .expect("Script not found");
 
         println!("Running script '{}': '{}'", script_name, script);
 
@@ -49,7 +64,8 @@ fn main() {
         }
     } else {
         // display the name of all scripts
-        table.scripts.keys().for_each(|script_name| println!("{}", script_name));
+        table.package.metadata.scripts.keys()
+            .for_each(|script_name| println!("{}", script_name));
     }
 
 }
