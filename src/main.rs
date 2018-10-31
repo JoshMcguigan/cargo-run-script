@@ -41,16 +41,11 @@ fn main() {
             shell
         };
 
-        let output = shell.arg(script).output().expect("Failed to run script");
+        let mut child = shell.arg(script).spawn().expect("Failed to run script");
 
-        if output.status.success() {
-            println!("{}", String::from_utf8_lossy(&output.stdout));
-        } else {
-            println!("Script exited with status code {}", output.status);
-            println!("stdout:");
-            println!("{}", String::from_utf8_lossy(&output.stdout));
-            println!("stderr:");
-            println!("{}", String::from_utf8_lossy(&output.stderr));
+        match child.wait() {
+            Ok(status) => println!("Finished, status of {}", status),
+            Err(e)     => println!("Failed, error: {}", e)
         }
     } else {
         // display the name of all scripts
