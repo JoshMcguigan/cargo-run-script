@@ -20,8 +20,6 @@ struct Metadata {
     scripts: HashMap<String, String>
 }
 
-
-
 fn main() {
     let mut f = File::open("Cargo.toml").expect("Cargo.toml file not found.");
 
@@ -35,6 +33,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     // TODO correct arg handling for cargo run vs installed cargo run-script
+    // TODO handle passing args through to scripts
     if args.len() > 1 {
         // run the script
         let script_name = &args[args.len() - 1];
