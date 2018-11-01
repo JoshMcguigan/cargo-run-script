@@ -3,6 +3,10 @@ name = "cargo-run-script"
 version = "0.1.0"
 authors = ["Josh Mcguigan"]
 edition = "2018"
+description = "Bringing `npm run-script` to Rust"
+repository = "https://github.com/JoshMcguigan/cargo-run-script"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 toml = "0.4"
