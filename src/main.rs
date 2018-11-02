@@ -5,6 +5,8 @@ use std::io::Read;
 use std::env;
 use std::process::Command;
 
+mod arg_parse;
+
 #[derive(Deserialize, Debug)]
 struct Config {
     package: Package
@@ -30,41 +32,41 @@ fn main() {
     let table : Config = toml::from_str(&toml)
         .expect("Expected Cargo.toml to contain package.metadata.scripts table.");
 
-    let args: Vec<String> = env::args().collect();
+    let args = arg_parse::parse(env::args().collect());
 
-    // TODO correct arg handling for cargo run vs installed cargo run-script
     // TODO handle passing args through to scripts
-    if args.len() > 1 {
-        // run the script
-        let script_name = &args[args.len() - 1];
+    match args.script {
+        None => {
+            // display the name of all scripts
+            table.package.metadata.scripts.keys()
+                .for_each(|script_name| println!("{}", script_name));
+        },
+        Some(script_name) => {
+            // run the script
 
-        let script = table.package.metadata.scripts.get(script_name)
-            .expect("Script not found");
+            let script = table.package.metadata.scripts.get(&script_name)
+                .expect("Script not found");
 
-        println!("Running script '{}': '{}'", script_name, script);
+            println!("Running script '{}': '{}'", script_name, script);
 
-        let mut shell = if cfg!(target_os = "windows") {
-            let mut shell = Command::new("cmd");
-            shell.arg("/C");
+            let mut shell = if cfg!(target_os = "windows") {
+                let mut shell = Command::new("cmd");
+                shell.arg("/C");
 
-            shell
-        } else {
-            let mut shell = Command::new("sh");
-            shell.arg("-c");
+                shell
+            } else {
+                let mut shell = Command::new("sh");
+                shell.arg("-c");
 
-            shell
-        };
+                shell
+            };
 
-        let mut child = shell.arg(script).spawn().expect("Failed to run script");
+            let mut child = shell.arg(script).spawn().expect("Failed to run script");
 
-        match child.wait() {
-            Ok(status) => println!("Finished, status of {}", status),
-            Err(e)     => println!("Failed, error: {}", e)
-        }
-    } else {
-        // display the name of all scripts
-        table.package.metadata.scripts.keys()
-            .for_each(|script_name| println!("{}", script_name));
+            match child.wait() {
+                Ok(status) => println!("Finished, status of {}", status),
+                Err(e)     => println!("Failed, error: {}", e)
+            }
+        },
     }
-
 }
