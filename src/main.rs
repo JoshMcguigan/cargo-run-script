@@ -35,38 +35,38 @@ fn main() {
     let args = arg_parse::parse(env::args().collect());
 
     // TODO handle passing args through to scripts
-    match args.script {
-        None => {
-            // display the name of all scripts
-            table.package.metadata.scripts.keys()
-                .for_each(|script_name| println!("{}", script_name));
-        },
-        Some(script_name) => {
-            // run the script
-
-            let script = table.package.metadata.scripts.get(&script_name)
-                .expect("Script not found");
-
-            println!("Running script '{}': '{}'", script_name, script);
-
-            let mut shell = if cfg!(target_os = "windows") {
-                let mut shell = Command::new("cmd");
-                shell.arg("/C");
-
-                shell
-            } else {
-                let mut shell = Command::new("sh");
-                shell.arg("-c");
-
-                shell
-            };
-
-            let mut child = shell.arg(script).spawn().expect("Failed to run script");
-
-            match child.wait() {
-                Ok(status) => println!("Finished, status of {}", status),
-                Err(e)     => println!("Failed, error: {}", e)
-            }
-        },
-    }
+//    match args.script {
+//        None => {
+//            // display the name of all scripts
+//            table.package.metadata.scripts.keys()
+//                .for_each(|script_name| println!("{}", script_name));
+//        },
+//        Some(script_name) => {
+//            // run the script
+//
+//            let script = table.package.metadata.scripts.get(&script_name)
+//                .expect("Script not found");
+//
+//            println!("Running script '{}': '{}'", script_name, script);
+//
+//            let mut shell = if cfg!(target_os = "windows") {
+//                let mut shell = Command::new("cmd");
+//                shell.arg("/C");
+//
+//                shell
+//            } else {
+//                let mut shell = Command::new("sh");
+//                shell.arg("-c");
+//
+//                shell
+//            };
+//
+//            let mut child = shell.arg(script).spawn().expect("Failed to run script");
+//
+//            match child.wait() {
+//                Ok(status) => println!("Finished, status of {}", status),
+//                Err(e)     => println!("Failed, error: {}", e)
+//            }
+//        },
+//    }
 }
