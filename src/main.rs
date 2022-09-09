@@ -9,11 +9,12 @@ mod arg_parse;
 
 #[derive(Deserialize, Debug)]
 struct Config {
-    package: Package
+    package: Option<MetadataSection>,
+    workspace: Option<MetadataSection>
 }
 
 #[derive(Deserialize, Debug)]
-struct Package {
+struct MetadataSection {
     metadata: Metadata
 }
 
@@ -29,19 +30,27 @@ fn main() {
     f.read_to_string(&mut toml)
         .expect("Failed to read Cargo.toml.");
 
-    let table : Config = toml::from_str(&toml)
-        .expect("Expected Cargo.toml to contain package.metadata.scripts table.");
+    let config : Config = toml::from_str(&toml)
+        .expect("Expected Cargo.toml to contain package.metadata.scripts or workspace.metadata.scripts table.");
+
+    let metadata = if let Some(package_table) = config.package {
+        package_table.metadata
+    } else if let Some(workspace_table) = config.workspace {
+        workspace_table.metadata
+    } else {
+        panic!("Expected Cargo.toml to contain package.metadata.scripts or workspace.metadata.scripts table.");
+    };
 
     let args = arg_parse::parse(env::args().collect());
 
     match args.script {
         None => {
             // display the name of all scripts
-            table.package.metadata.scripts.keys()
+            metadata.scripts.keys()
                 .for_each(|script_name| println!("{}", script_name));
         },
         Some(script_name) => {
-            let script = table.package.metadata.scripts.get(&script_name)
+            let script = metadata.scripts.get(&script_name)
                 .expect("Script not found");
             run_script(script);
         },
