@@ -8,19 +8,23 @@ use std::process::Command;
 mod arg_parse;
 
 #[derive(Deserialize, Debug)]
-struct Config {
-    package: Option<MetadataSection>,
-    workspace: Option<MetadataSection>
+enum Config {
+    Workspace {
+        workspace: MetadataSection
+    },
+    Package {
+        package: MetadataSection
+    },
 }
 
 #[derive(Deserialize, Debug)]
 struct MetadataSection {
-    metadata: Metadata
+    metadata: Metadata,
 }
 
 #[derive(Deserialize, Debug)]
 struct Metadata {
-    scripts: HashMap<String, String>
+    scripts: HashMap<String, String>,
 }
 
 fn main() {
@@ -30,15 +34,12 @@ fn main() {
     f.read_to_string(&mut toml)
         .expect("Failed to read Cargo.toml.");
 
-    let config : Config = toml::from_str(&toml)
+    let config: Config = toml::from_str(&toml)
         .expect("Expected Cargo.toml to contain package.metadata.scripts or workspace.metadata.scripts table.");
 
-    let metadata = if let Some(package_table) = config.package {
-        package_table.metadata
-    } else if let Some(workspace_table) = config.workspace {
-        workspace_table.metadata
-    } else {
-        panic!("Expected Cargo.toml to contain package.metadata.scripts or workspace.metadata.scripts table.");
+    let metadata = match config {
+        Config::Workspace { workspace } => workspace.metadata,
+        Config::Package { package } => package.metadata,
     };
 
     let args = arg_parse::parse(env::args().collect());
@@ -48,12 +49,12 @@ fn main() {
             // display the name of all scripts
             metadata.scripts.keys()
                 .for_each(|script_name| println!("{}", script_name));
-        },
+        }
         Some(script_name) => {
             let script = metadata.scripts.get(&script_name)
                 .expect("Script not found");
             run_script(script);
-        },
+        }
     }
 }
 
@@ -74,6 +75,6 @@ fn run_script(script: &str) {
 
     match child.wait() {
         Ok(status) => println!("Finished, status of {}", status),
-        Err(e)     => println!("Failed, error: {}", e)
+        Err(e) => println!("Failed, error: {}", e)
     }
 }
