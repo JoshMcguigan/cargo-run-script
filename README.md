@@ -12,6 +12,9 @@ cargo install cargo-run-script
 
 ## Defining Scripts
 
+Scripts can be defined for workspaces or for single packages by adding the proper section to the `Cargo.toml` file.
+
+### Package Scripts
 Scripts are defined by adding a `[package.metadata.scripts]` section to the `Cargo.toml` file of your project, as shown below.
 
 ```toml
@@ -20,7 +23,17 @@ hello = "echo Hello"
 goodbye = "echo Goodbye"
 ```
 
-A more complete example can be seen by reviewing the `Cargo.toml` for this project. 
+A more complete example can be seen by reviewing the `Cargo.toml` for this project.
+
+### Workspace Scripts
+
+Scripts are defined by adding a `[workspace.metadata.scripts]` section to the `Cargo.toml` file of your workspace, as shown below.
+
+```toml
+[workspace.metadata.scripts]
+hello = "echo Hello"
+goodbye = "echo Goodbye"
+```
 
 ## Running Scripts
 
