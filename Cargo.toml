@@ -1,6 +1,6 @@
 [package]
 name = "cargo-run-script"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Josh Mcguigan"]
 edition = "2018"
 description = "Bringing `npm run-script` to Rust"
