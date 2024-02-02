@@ -12,7 +12,7 @@ cargo install cargo-run-script
 
 ## Defining Scripts
 
-Scripts can be defined for workspaces or for single packages by adding the apropiated section to the `Cargo.toml` file.
+Scripts can be defined for workspaces or for single packages by adding the proper section to the `Cargo.toml` file.
 
 ### Package Scripts
 Scripts are defined by adding a `[package.metadata.scripts]` section to the `Cargo.toml` file of your project, as shown below.
