@@ -15,7 +15,7 @@ pub fn parse(args: Vec<String>) -> Result<Args, &'static str> {
 
     let binary_path = iter.next().expect("binary path is always specified");
 
-    // skip "run-script" subcommand if there
+    // skip "run-script" subcommand if present
     let possible_script_name = match iter.next() {
         Some(value) => match value.as_str() {
             "run-script" => iter.next(),

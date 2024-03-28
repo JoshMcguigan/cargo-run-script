@@ -43,7 +43,7 @@ fn main() -> Result<(), String> {
 
     match metadata.scripts.get(&args.script_name) {
         Some(script) => {
-            run_script(script, args);
+            run_script(script.clone(), args);
             Ok(())
         }
         None => {
@@ -69,7 +69,7 @@ fn parse_toml_file(file_path: &str) -> Metadata {
     }
 }
 
-fn run_script(script: &str, args: Args) {
+fn run_script(script: String, args: Args) {
     let mut shell = if cfg!(target_os = "windows") {
         let mut shell = Command::new("cmd");
         shell.arg("/C");
@@ -82,12 +82,19 @@ fn run_script(script: &str, args: Args) {
         shell
     };
 
-    shell.arg(script);
-    args.script_arguments.iter().for_each(|arg| {
-        shell.arg(arg);
-    });
+    let mut modified_script = script;
+    args.script_arguments
+        .iter()
+        .enumerate()
+        .for_each(|(index, arg)| {
+            let replace_target = "$".to_owned() + index.to_string().as_str();
+            modified_script = modified_script.replace(&replace_target, arg)
+        });
 
-    let mut child = shell.spawn().expect("Failed to run script");
+    let mut child = shell
+        .arg(modified_script)
+        .spawn()
+        .expect("Failed to run script");
     match child.wait() {
         Ok(status) => println!("Finished, status of {}", status),
         Err(e) => println!("Failed, error: {}", e),
