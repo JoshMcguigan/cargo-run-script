@@ -1,8 +1,9 @@
+use arg_parse::Args;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
+use std::env;
 use std::fs::File;
 use std::io::Read;
-use std::env;
 use std::process::Command;
 
 mod arg_parse;
@@ -10,12 +11,8 @@ mod arg_parse;
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 enum Config {
-    Workspace {
-        workspace: MetadataSection
-    },
-    Package {
-        package: MetadataSection
-    },
+    Workspace { workspace: MetadataSection },
+    Package { package: MetadataSection },
 }
 
 #[derive(Deserialize, Debug)]
@@ -28,21 +25,30 @@ struct Metadata {
     scripts: HashMap<String, String>,
 }
 
-fn main() {
+impl Metadata {
+    fn print_script_names(&self) {
+        self.scripts
+            .keys()
+            .for_each(|script_name| println!("{}", script_name));
+    }
+}
+
+fn main() -> Result<(), String> {
     let metadata = parse_toml_file("Cargo.toml");
 
-    let args = arg_parse::parse(env::args().collect());
+    let args = arg_parse::parse(env::args().collect()).or_else(|err| {
+        metadata.print_script_names();
+        Err(err)
+    })?;
 
-    match args.script {
-        None => {
-            // display the name of all scripts
-            metadata.scripts.keys()
-                .for_each(|script_name| println!("{}", script_name));
+    match metadata.scripts.get(&args.script_name) {
+        Some(script) => {
+            run_script(script, args);
+            Ok(())
         }
-        Some(script_name) => {
-            let script = metadata.scripts.get(&script_name)
-                .expect("Script not found");
-            run_script(script);
+        None => {
+            metadata.print_script_names();
+            Err("script name is invalid".into())
         }
     }
 }
@@ -63,7 +69,7 @@ fn parse_toml_file(file_path: &str) -> Metadata {
     }
 }
 
-fn run_script(script: &str) {
+fn run_script(script: &str, args: Args) {
     let mut shell = if cfg!(target_os = "windows") {
         let mut shell = Command::new("cmd");
         shell.arg("/C");
@@ -76,11 +82,15 @@ fn run_script(script: &str) {
         shell
     };
 
-    let mut child = shell.arg(script).spawn().expect("Failed to run script");
+    shell.arg(script);
+    args.script_arguments.iter().for_each(|arg| {
+        shell.arg(arg);
+    });
 
+    let mut child = shell.spawn().expect("Failed to run script");
     match child.wait() {
         Ok(status) => println!("Finished, status of {}", status),
-        Err(e) => println!("Failed, error: {}", e)
+        Err(e) => println!("Failed, error: {}", e),
     }
 }
 
