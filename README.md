@@ -35,6 +35,19 @@ hello = "echo Hello"
 goodbye = "echo Goodbye"
 ```
 
+### Scripts with arguments
+
+Scripts can be defined as accepting arguments, as shown below.
+
+```toml
+[package.metadata.scripts]
+print_arguments = "echo $1 $2"
+```
+
+All instances of `$x` are replaced with the relevant passed argument before invoking the shell.
+
+Note that `$0` will be replaced by the first argument passed, which is the binary path of the executable on most systems.
+
 ## Running Scripts
 
 From the root of your project directory (at the same level as the `Cargo.toml`), you can run your scripts as shown below.
@@ -50,6 +63,13 @@ The output of this would be
 Running script 'hello': 'echo Hello'
 Hello
 Finished, status of exit code: 0
+```
+
+Running scripts with arguments is also simple.
+
+```bash
+# to run a script called "print_arguments"
+cargo run-script print_arguments "first argument" "second argument"
 ```
 
 ## License

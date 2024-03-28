@@ -82,12 +82,12 @@ fn run_script(script: String, args: Args) {
         shell
     };
 
-    let mut modified_script = script;
+    let mut modified_script = script.replace("$0", &args.binary_path);
     args.script_arguments
         .iter()
         .enumerate()
         .for_each(|(index, arg)| {
-            let replace_target = "$".to_owned() + index.to_string().as_str();
+            let replace_target = "$".to_owned() + (index + 1).to_string().as_str();
             modified_script = modified_script.replace(&replace_target, arg)
         });
 
