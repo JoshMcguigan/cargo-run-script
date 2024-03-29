@@ -33,7 +33,7 @@ impl Metadata {
     }
 }
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), &'static str> {
     let metadata = parse_toml_file("Cargo.toml");
 
     let args = arg_parse::parse(env::args().collect()).or_else(|err| {
@@ -42,10 +42,7 @@ fn main() -> Result<(), String> {
     })?;
 
     match metadata.scripts.get(&args.script_name) {
-        Some(script) => {
-            run_script(script.clone(), args);
-            Ok(())
-        }
+        Some(script) => run_script(script.clone(), args),
         None => {
             metadata.print_script_names();
             Err("script name is invalid".into())
@@ -69,7 +66,7 @@ fn parse_toml_file(file_path: &str) -> Metadata {
     }
 }
 
-fn run_script(script: String, args: Args) {
+fn run_script(script: String, args: Args) -> Result<(), &'static str> {
     let mut shell = if cfg!(target_os = "windows") {
         let mut shell = Command::new("cmd");
         shell.arg("/C");
@@ -95,9 +92,13 @@ fn run_script(script: String, args: Args) {
         .arg(modified_script)
         .spawn()
         .expect("Failed to run script");
-    match child.wait() {
-        Ok(status) => println!("Finished, status of {}", status),
-        Err(e) => println!("Failed, error: {}", e),
+    let status = child.wait().expect("script was not running");
+    match status.code() {
+        Some(code) => match code {
+            0 => Ok(()),
+            _ => Err("script ended with error code"),
+        },
+        None => Err("script ended with exit signal"),
     }
 }
 
