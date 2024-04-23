@@ -17,3 +17,11 @@ serde_derive = "1.0"
 hello = "echo Hello"
 goodbye = "echo Goodbye"
 install = "cargo install --path . --force"
+print_arguments = "echo $1 $2"
+print_greeting = """LANG="$1"; \
+    if [ "$LANG" = "en" ]; then \
+        echo "Hello"; \
+    else \
+        echo "Sorry, I do not know this language"; \
+    fi \
+"""
